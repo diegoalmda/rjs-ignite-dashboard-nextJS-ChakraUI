@@ -1,37 +1,15 @@
 import { Box, Button, Checkbox, Flex, Heading, Icon, Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, useBreakpointValue } from "@chakra-ui/react";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useState } from "react";
 import { RiAddLine, RiPencilLine } from "react-icons/ri";
 import { Header } from "../../components/Header";
 import { Pagination } from "../../components/Pagination";
 import { Sidebar } from "../../components/Sidebar";
-
-import { useQuery } from 'react-query'
+import { useUsers } from "../../services/hooks/useUsers";
 
 export default function UserList() {
-  const { data, isLoading, error } = useQuery('users', async () => {
-    const response = await fetch('http://localhost:3000/api/users');
-    const data = await response.json();
-
-    // console.log(data);
-
-    // const users = data.users.map(user => {
-    //   return {
-    //     id: user.id,
-    //     name: user.name,
-    //     email: user.email,
-    //     createdAt: new Date(user.createdAt).toLocaleDateString('pt-BR', {
-    //       day: '2-digit',
-    //       month: 'long',
-    //       year: 'numeric'
-    //     }),
-    //   };
-    // });
-
-    return data;
-  }, {
-    staleTime: 1000 * 5, // 5 seconds
-  });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching, error } = useUsers(page);
 
   const isWideVersion = useBreakpointValue({
     base: false, // por padrão não está na wideversion
@@ -47,7 +25,10 @@ export default function UserList() {
 
         <Box flex="1" borderRadius={8} bg="gray.800" p="8">
           <Flex mb="8" justify="space-between" alignItems="center">
-            <Heading size="lg" fontWeight="normal">Usuários</Heading>
+            <Heading size="lg" fontWeight="normal">
+              Usuários
+              { !isLoading && isFetching && <Spinner size="sm" color="gray.500" ml="4" /> }
+            </Heading>
 
             <Link href="/users/create" passHref>
               <Button 
@@ -114,7 +95,11 @@ export default function UserList() {
                 </Tbody>
               </Table>
 
-              <Pagination />
+              <Pagination 
+                totalCountOfRegisters={data.totalCount}
+                currentPage={page}
+                onPageChange={setPage}
+              />
             </>
           )}
         </Box>
